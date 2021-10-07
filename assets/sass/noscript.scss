@@ -3,38 +3,31 @@
 @import 'libs/mixins';
 @import 'libs/vendor';
 @import 'libs/breakpoints';
+@import 'libs/html-grid';
 
 /*
-	Multiverse by HTML5 UP
+	Landed by HTML5 UP
 	html5up.net | @ajlkn
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 */
 
-/* Wrapper */
+/* Loader */
 
-	#wrapper {
-		body.is-preload & {
-			&:before {
-				display: none;
-			}
-		}
-	}
+	body.landing {
 
-/* Main */
+		&.is-preload {
 
-	#main {
-		body.is-preload & {
-			.thumb {
-				@include vendor('pointer-events', 'auto');
-				opacity: 1;
-			}
-		}
-	}
+			// Spinner (active)
 
-/* Header */
+				&:before {
+					display: none;
+				}
 
-	#header {
-		body.is-preload & {
-			@include vendor('transform', 'none');
+			// Overlay (active)
+
+				&:after {
+					display: none;
+				}
+
 		}
 	}

@@ -1,5 +1,5 @@
 /*
-	Multiverse by HTML5 UP
+	Landed by HTML5 UP
 	html5up.net | @ajlkn
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 */
@@ -7,275 +7,244 @@
 (function($) {
 
 	var	$window = $(window),
-		$body = $('body'),
-		$wrapper = $('#wrapper');
+		$body = $('body');
 
 	// Breakpoints.
 		breakpoints({
-			xlarge:  [ '1281px',  '1680px' ],
-			large:   [ '981px',   '1280px' ],
-			medium:  [ '737px',   '980px'  ],
-			small:   [ '481px',   '736px'  ],
-			xsmall:  [ null,      '480px'  ]
+			xlarge:   [ '1281px',  '1680px' ],
+			large:    [ '981px',   '1280px' ],
+			medium:   [ '737px',   '980px'  ],
+			small:    [ '481px',   '736px'  ],
+			xsmall:   [ null,      '480px'  ]
 		});
 
-	// Hack: Enable IE workarounds.
-		if (browser.name == 'ie')
-			$body.addClass('ie');
+	// Play initial animations on page load.
+		$window.on('load', function() {
+			window.setTimeout(function() {
+				$body.removeClass('is-preload');
+			}, 100);
+		});
 
-	// Touch?
+	// Touch mode.
 		if (browser.mobile)
-			$body.addClass('touch');
+			$body.addClass('is-touch');
 
-	// Transitions supported?
-		if (browser.canUse('transition')) {
+	// Scrolly links.
+		$('.scrolly').scrolly({
+			speed: 2000
+		});
 
-			// Play initial animations on page load.
-				$window.on('load', function() {
-					window.setTimeout(function() {
-						$body.removeClass('is-preload');
-					}, 100);
+	// Dropdowns.
+		$('#nav > ul').dropotron({
+			alignment: 'right',
+			hideDelay: 350
+		});
+
+	// Nav.
+
+		// Title Bar.
+			$(
+				'<div id="titleBar">' +
+					'<a href="#navPanel" class="toggle"></a>' +
+					'<span class="title">' + $('#logo').html() + '</span>' +
+				'</div>'
+			)
+				.appendTo($body);
+
+		// Panel.
+			$(
+				'<div id="navPanel">' +
+					'<nav>' +
+						$('#nav').navList() +
+					'</nav>' +
+				'</div>'
+			)
+				.appendTo($body)
+				.panel({
+					delay: 500,
+					hideOnClick: true,
+					hideOnSwipe: true,
+					resetScroll: true,
+					resetForms: true,
+					side: 'left',
+					target: $body,
+					visibleClass: 'navPanel-visible'
 				});
 
-			// Prevent transitions/animations on resize.
-				var resizeTimeout;
+	// Parallax.
+	// Disabled on IE (choppy scrolling) and mobile platforms (poor performance).
+		if (browser.name == 'ie'
+		||	browser.mobile) {
 
-				$window.on('resize', function() {
+			$.fn._parallax = function() {
 
-					window.clearTimeout(resizeTimeout);
+				return $(this);
 
-					$body.addClass('is-resizing');
+			};
 
-					resizeTimeout = window.setTimeout(function() {
-						$body.removeClass('is-resizing');
-					}, 100);
+		}
+		else {
 
+			$.fn._parallax = function() {
+
+				$(this).each(function() {
+
+					var $this = $(this),
+						on, off;
+
+					on = function() {
+
+						$this
+							.css('background-position', 'center 0px');
+
+						$window
+							.on('scroll._parallax', function() {
+
+								var pos = parseInt($window.scrollTop()) - parseInt($this.position().top);
+
+								$this.css('background-position', 'center ' + (pos * -0.15) + 'px');
+
+							});
+
+					};
+
+					off = function() {
+
+						$this
+							.css('background-position', '');
+
+						$window
+							.off('scroll._parallax');
+
+					};
+
+					breakpoints.on('<=medium', off);
+					breakpoints.on('>medium', on);
+
+				});
+
+				return $(this);
+
+			};
+
+			$window
+				.on('load resize', function() {
+					$window.trigger('scroll');
 				});
 
 		}
 
-	// Scroll back to top.
-		$window.scrollTop(0);
+	// Spotlights.
+		var $spotlights = $('.spotlight');
 
-	// Panels.
-		var $panels = $('.panel');
-
-		$panels.each(function() {
-
-			var $this = $(this),
-				$toggles = $('[href="#' + $this.attr('id') + '"]'),
-				$closer = $('<div class="closer" />').appendTo($this);
-
-			// Closer.
-				$closer
-					.on('click', function(event) {
-						$this.trigger('---hide');
-					});
-
-			// Events.
-				$this
-					.on('click', function(event) {
-						event.stopPropagation();
-					})
-					.on('---toggle', function() {
-
-						if ($this.hasClass('active'))
-							$this.triggerHandler('---hide');
-						else
-							$this.triggerHandler('---show');
-
-					})
-					.on('---show', function() {
-
-						// Hide other content.
-							if ($body.hasClass('content-active'))
-								$panels.trigger('---hide');
-
-						// Activate content, toggles.
-							$this.addClass('active');
-							$toggles.addClass('active');
-
-						// Activate body.
-							$body.addClass('content-active');
-
-					})
-					.on('---hide', function() {
-
-						// Deactivate content, toggles.
-							$this.removeClass('active');
-							$toggles.removeClass('active');
-
-						// Deactivate body.
-							$body.removeClass('content-active');
-
-					});
-
-			// Toggles.
-				$toggles
-					.removeAttr('href')
-					.css('cursor', 'pointer')
-					.on('click', function(event) {
-
-						event.preventDefault();
-						event.stopPropagation();
-
-						$this.trigger('---toggle');
-
-					});
-
-		});
-
-		// Global events.
-			$body
-				.on('click', function(event) {
-
-					if ($body.hasClass('content-active')) {
-
-						event.preventDefault();
-						event.stopPropagation();
-
-						$panels.trigger('---hide');
-
-					}
-
-				});
-
-			$window
-				.on('keyup', function(event) {
-
-					if (event.keyCode == 27
-					&&	$body.hasClass('content-active')) {
-
-						event.preventDefault();
-						event.stopPropagation();
-
-						$panels.trigger('---hide');
-
-					}
-
-				});
-
-	// Header.
-		var $header = $('#header');
-
-		// Links.
-			$header.find('a').each(function() {
+		$spotlights
+			._parallax()
+			.each(function() {
 
 				var $this = $(this),
-					href = $this.attr('href');
+					on, off;
 
-				// Internal link? Skip.
-					if (!href
-					||	href.charAt(0) == '#')
-						return;
+				on = function() {
 
-				// Redirect on click.
-					$this
-						.removeAttr('href')
-						.css('cursor', 'pointer')
-						.on('click', function(event) {
+					var top, bottom, mode;
 
-							event.preventDefault();
-							event.stopPropagation();
+					// Use main <img>'s src as this spotlight's background.
+						$this.css('background-image', 'url("' + $this.find('.image.main > img').attr('src') + '")');
 
-							window.location.href = href;
+					// Side-specific scrollex tweaks.
+						if ($this.hasClass('top')) {
+
+							mode = 'top';
+							top = '-20%';
+							bottom = 0;
+
+						}
+						else if ($this.hasClass('bottom')) {
+
+							mode = 'bottom-only';
+							top = 0;
+							bottom = '20%';
+
+						}
+						else {
+
+							mode = 'middle';
+							top = 0;
+							bottom = 0;
+
+						}
+
+					// Add scrollex.
+						$this.scrollex({
+							mode:		mode,
+							top:		top,
+							bottom:		bottom,
+							initialize:	function(t) { $this.addClass('inactive'); },
+							terminate:	function(t) { $this.removeClass('inactive'); },
+							enter:		function(t) { $this.removeClass('inactive'); },
+
+							// Uncomment the line below to "rewind" when this spotlight scrolls out of view.
+
+							//leave:	function(t) { $this.addClass('inactive'); },
 
 						});
 
+				};
+
+				off = function() {
+
+					// Clear spotlight's background.
+						$this.css('background-image', '');
+
+					// Remove scrollex.
+						$this.unscrollex();
+
+				};
+
+				breakpoints.on('<=medium', off);
+				breakpoints.on('>medium', on);
+
 			});
 
-	// Footer.
-		var $footer = $('#footer');
+	// Wrappers.
+		var $wrappers = $('.wrapper');
 
-		// Copyright.
-		// This basically just moves the copyright line to the end of the *last* sibling of its current parent
-		// when the "medium" breakpoint activates, and moves it back when it deactivates.
-			$footer.find('.copyright').each(function() {
+		$wrappers
+			.each(function() {
 
 				var $this = $(this),
-					$parent = $this.parent(),
-					$lastParent = $parent.parent().children().last();
+					on, off;
 
-				breakpoints.on('<=medium', function() {
-					$this.appendTo($lastParent);
-				});
+				on = function() {
 
-				breakpoints.on('>medium', function() {
-					$this.appendTo($parent);
-				});
+					$this.scrollex({
+						top:		250,
+						bottom:		0,
+						initialize:	function(t) { $this.addClass('inactive'); },
+						terminate:	function(t) { $this.removeClass('inactive'); },
+						enter:		function(t) { $this.removeClass('inactive'); },
 
-			});
+						// Uncomment the line below to "rewind" when this wrapper scrolls out of view.
 
-	// Main.
-		var $main = $('#main');
+						//leave:	function(t) { $this.addClass('inactive'); },
 
-		// Thumbs.
-			$main.children('.thumb').each(function() {
-
-				var	$this = $(this),
-					$image = $this.find('.image'), $image_img = $image.children('img'),
-					x;
-
-				// No image? Bail.
-					if ($image.length == 0)
-						return;
-
-				// Image.
-				// This sets the background of the "image" <span> to the image pointed to by its child
-				// <img> (which is then hidden). Gives us way more flexibility.
-
-					// Set background.
-						$image.css('background-image', 'url(' + $image_img.attr('src') + ')');
-
-					// Set background position.
-						if (x = $image_img.data('position'))
-							$image.css('background-position', x);
-
-					// Hide original img.
-						$image_img.hide();
-
-			});
-
-		// Poptrox.
-			$main.poptrox({
-				baseZIndex: 20000,
-				caption: function($a) {
-
-					var s = '';
-
-					$a.nextAll().each(function() {
-						s += this.outerHTML;
 					});
 
-					return s;
+				};
 
-				},
-				fadeSpeed: 300,
-				onPopupClose: function() { $body.removeClass('modal-active'); },
-				onPopupOpen: function() { $body.addClass('modal-active'); },
-				overlayOpacity: 0,
-				popupCloserText: '',
-				popupHeight: 150,
-				popupLoaderText: '',
-				popupSpeed: 300,
-				popupWidth: 150,
-				selector: '.thumb > a.image',
-				usePopupCaption: true,
-				usePopupCloser: true,
-				usePopupDefaultStyling: false,
-				usePopupForceClose: true,
-				usePopupLoader: true,
-				usePopupNav: true,
-				windowMargin: 50
+				off = function() {
+					$this.unscrollex();
+				};
+
+				breakpoints.on('<=medium', off);
+				breakpoints.on('>medium', on);
+
 			});
 
-			// Hack: Set margins to 0 when 'xsmall' activates.
-				breakpoints.on('<=xsmall', function() {
-					$main[0]._poptrox.windowMargin = 0;
-				});
+	// Banner.
+		var $banner = $('#banner');
 
-				breakpoints.on('>xsmall', function() {
-					$main[0]._poptrox.windowMargin = 50;
-				});
+		$banner
+			._parallax();
 
 })(jQuery);
